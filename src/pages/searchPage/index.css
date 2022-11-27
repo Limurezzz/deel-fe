@@ -1,0 +1,32 @@
+.deel-fe {
+  padding: 2em;
+}
+
+.deel-fe .mr-1 {
+  margin-right: 1em;
+}
+
+.deel-fe ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.deel-fe ul li {
+  border: 1px solid #1334;
+  margin-bottom: 1em;
+  padding: 0.5em;
+}
+
+.deel-fe .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.deel-fe .title {
+  font-weight: bold;
+}
+
+.deel-fe label {
+  flex-basis: 25%;
+}
