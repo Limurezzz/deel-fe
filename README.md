@@ -2,10 +2,21 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Fake API is used
+So far as I use regexp to highlight text - any regexp special symbols need to be escaped, like: 
+[ ] \\ ^ $ . | ? * + ( )
+
+In order to check all this edge cases it is easier to simulate API.
+Please check 'src/queries/getMockData.ts' file. I used REACT_APP_FAIL_PROBABILITY parameter to simulate errors from API.
+Also REACT_APP_API_TIMEOUT is used as .env parameter, default value is 300ms.
+
+## What we need for PROD
+In general CRA makes most of the job to make final bundle be ready to deploy. You just need to build the project.
+But there are no tests... And it is really bad idea go to PROD without even unit tests. Also would be nice to have e2e tests.
+I would also add additional .prettierrc and .eslintrc rules to make code styles consistant across the team (like sort imports alphabetically, max width of the line, etc.)
 ## Available Scripts
 
 First install dependencies
-
 ### `npm i`
 
 In the project directory, you can run:

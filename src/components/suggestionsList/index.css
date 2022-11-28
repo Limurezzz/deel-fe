@@ -1,0 +1,19 @@
+#suggestions-list li.selected {
+    background-color: lightblue;
+}
+#suggestions-list {
+    width: 100%;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+#suggestions-list li {
+    border: 1px solid #1334;
+    padding: 0.5em;
+    cursor: pointer;
+}
+
+#suggestions-list li:hover {
+    background-color: wheat;
+}

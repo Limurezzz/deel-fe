@@ -1,11 +1,11 @@
-const symbolsToEncode = ['[',']','\\', '^', '$', '.', '|', '?', '*', '+', '(', ')'];
-const symbolsToEncodeSet = new Set(symbolsToEncode);
+const symbolsToEscape = ['[',']','\\', '^', '$', '.', '|', '?', '*', '+', '(', ')'];
+const symbolsToEscapeSet = new Set(symbolsToEscape);
 
-export const encodeSymbols = (str?: string) => {
+export const escapeSymbols = (str?: string) => {
     if (str) {
         let result = [];
         for (let char of str) {
-            if (symbolsToEncodeSet.has(char)) {
+            if (symbolsToEscapeSet.has(char)) {
                 result.push('\\' + char);
             } else {
                 result.push(char);

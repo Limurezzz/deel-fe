@@ -1,5 +1,4 @@
 import data from "../mocks/mock_data.json";
-import { MockType } from "../types/mockType";
 
 const { 
   REACT_APP_API_TIMEOUT = 300, 
@@ -7,15 +6,16 @@ const {
   REACT_APP_FAIL_PROBABILITY = 0.05 // We can set up failing probability for our fake API. Here it is 5%
 } = process.env;
 
+const searchData: string[] = data.map(i => i.text);
 
 // this is fake API call with some fail probability. For PROD we need to use real API.
 const getMockDataQuery = (searchTerm?: string) => {
-    let filteredData: MockType[] = data;
+    let filteredData = searchData;
     if (searchTerm) {
-      filteredData = data
-        .filter(item => Object.values(item).some(i => i.toString().toLowerCase().includes(searchTerm)));
+      filteredData = searchData
+        .filter(i => i.toLowerCase().includes(searchTerm));
     }
-    return new Promise<MockType[]>((resolve, reject) => {
+    return new Promise<string[]>((resolve, reject) => {
       setTimeout(() => {
         if (Math.random() > REACT_APP_FAIL_PROBABILITY) {
           resolve(filteredData);

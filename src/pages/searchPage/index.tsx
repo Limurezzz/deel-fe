@@ -1,32 +1,33 @@
-import { ChangeEventHandler, FC, useCallback, useEffect, useRef, useState } from "react";
+import { createRef, FC, memo, useCallback, useEffect, useState } from "react";
+
+import Loading from "../../components/loading";
+import SearchInput from "../../components/searchInput";
+import SuggestionsList from "../../components/suggestionsList";
 import { getMockDataQuery } from "../../queries";
-import { MockType } from "../../types/mockType";
-import { encodeSymbols } from "../../utilities";
+import { escapeSymbols } from "../../utilities";
+
 import './index.css';
 
-const {
-    REACT_APP_DEBOUNCE_TIMEOUT = 200
-} = process.env;
-
 const SearchPage: FC = () => {
-    const [data, setData] = useState<MockType[]>([]);
+    const [data, setData] = useState<string[]>([]);
     const [searchTermForQuery, setSearchTermForQuery] = useState<string>();
     const [searchTermForHighlight, setSearchTermForHighlight] = useState<string>();
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>();
-    const timeoutID = useRef<NodeJS.Timeout>();
+    const inputRef = createRef<HTMLInputElement>();
 
     const getQueryWithHandlers = useCallback((searchQuery?: string) => {
         return getMockDataQuery(searchQuery)
-            .then((result: MockType[]) => {
+            .then((result: string[]) => {
                 setData(result);
                 setError(undefined);
                 // encode symbols of the string to search RegExp correctly
-                setSearchTermForHighlight(encodeSymbols(searchQuery));
+                setSearchTermForHighlight(escapeSymbols(searchQuery));
             })
             .catch(e => {
                 setError(e.message);
                 setSearchTermForHighlight(undefined);
+                setData([]);
             })
             .finally(() => {
                 setLoading(false);
@@ -35,68 +36,51 @@ const SearchPage: FC = () => {
 
     // load mock data on searchTermForQuery change; on component mount will load all data with no filtering
     useEffect(() => {
+        if (!searchTermForQuery) {
+            setData([]);
+            setLoading(false);
+            return;
+        }
         getQueryWithHandlers(searchTermForQuery)
     }, [searchTermForQuery, getQueryWithHandlers]);
 
-    // use debounce to let user quickly type 2-3 symbols in a row
-    const debouncedSearchTermOnChange: ChangeEventHandler<HTMLInputElement> = useCallback(({ target: { value } }) => {
-        clearInterval(timeoutID.current);
-        if (!value) {
-            setSearchTermForQuery(undefined);
+    const inputCallback = useCallback((value: string) => {
+        const trimmedValue = value.trim();
+        if (searchTermForQuery === trimmedValue) {
             return;
         }
-        timeoutID.current = setTimeout(() => {
-            setLoading(true);
-            setSearchTermForQuery(value.toLowerCase());
-        }, Number(REACT_APP_DEBOUNCE_TIMEOUT));
+        setLoading(true);
+        setSearchTermForQuery(trimmedValue.toLowerCase());
+    }, [searchTermForQuery]);
+
+    const selectCallback = useCallback((value: string) => {
+        setLoading(false);
+        if (inputRef.current) {
+            inputRef.current.value = value;
+            setData([]);
+        }
+    }, [inputRef]);
+
+    const sideClickHandler = useCallback(() => {
+        setLoading(false);
+        setData([]);
     }, []);
 
-    // we need this separate 'searchTermForHighlight' variable to highlight text only when async data was loaded
-    const renderHighlitghedText = useCallback((value: string) => {
-        if (searchTermForHighlight) {
-            const regex = new RegExp(`(${searchTermForHighlight})`, 'gi');
-            const parts = value.split(regex);
-            if (parts.length > 1) {
-                return (
-                    <span>
-                        {parts.filter(i => i).map((part, i) => (
-                            regex.test(part) ? <mark key={i}>{part}</mark> : <span key={i}>{part}</span>
-                        ))}
-                    </span>
-                );
-            }
+    useEffect(() => {
+        window.addEventListener('click', sideClickHandler);
+        return () => {
+            window.removeEventListener('click', sideClickHandler);
         }
-        return <span>{value}</span>
-    }, [searchTermForHighlight]);
-
-    if (error) {
-        return (
-            <>
-                <label className="mr-1">{error}</label>
-                <button onClick={() => getQueryWithHandlers()}>Start over</button>
-            </>);
-    }
+    }, [sideClickHandler]);
 
     return (
-        <>
-            <div>
-                <label className="mr-1">Search:</label>
-                <input type="text" className="mr-1" onChange={debouncedSearchTermOnChange} />
-                {loading ? <span className="info">Loading...</span> : null}
+        <div className="suggestions-wrapper">
+            <div className="loading-absolute">
+                <Loading state={loading} error={error} />
             </div>
-            <ul>
-                {data.map((item: MockType, i) => (
-                    <li key={i}>
-                        {Object.keys(item).map((key) =>
-                            <div className="label-row" key={key}>
-                                <label className="title">{key}</label>
-                                {renderHighlitghedText(item[key as keyof MockType].toString())}
-                            </div>
-                        )}
-                    </li>
-                ))}
-            </ul>
-        </>);
+            <SearchInput onChangeCallback={inputCallback} ref={inputRef} />
+            <SuggestionsList list={data} highlightTerm={searchTermForHighlight} selectCallback={selectCallback} />
+        </div>);
 }
 
-export default SearchPage;
+export default memo(SearchPage);

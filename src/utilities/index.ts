@@ -1,3 +1,3 @@
-import { encodeSymbols } from './encodeSymbols';
+import { escapeSymbols } from './escapeSymbols';
 
-export { encodeSymbols };
+export { escapeSymbols };
